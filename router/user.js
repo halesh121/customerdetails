@@ -5,7 +5,6 @@ const auth=require('../middleware/auth');
 const multer=require('multer');
 const upload=multer();
 
-
 userrouter.post('/user',async(req,res,next)=>{
         await Usermodel.signup(req,res)
 })
@@ -42,22 +41,18 @@ userrouter.post('/userdetails/:token',auth,upload.single('Image'),async(req,res)
     }
     catch(e)           
     {
-       
         res.send(e);
     }     
-
-
 })
 
-userrouter.get('/customerdetails/:token',async(req,res)=>{
-    try {
+userrouter.get('/customerdetails/:token',auth,async(req,res)=>{
+    try 
+    {
         await Usermodel.getdetails(req,res);
 
     } catch (error) {
         res.send(error)
     }
 })
-
-
 
 module.exports=userrouter;

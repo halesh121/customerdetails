@@ -50,16 +50,11 @@ const signup=async(req,res)=>{
 
                 con.release();
     })
-
-
 }
 
 const signin=async(req,res)=>{
     let username=req.body.username;
     let password=req.body.password;
-    // let bcryptpassword=await bcrypt.hash(password,8)
-   
-
 
     pool.getConnection(function(err,con)
     {
@@ -88,6 +83,7 @@ const signin=async(req,res)=>{
                   
                   
             })
+            con.release();
     })
 }
 
@@ -100,9 +96,7 @@ const customerdetails=async(req,res)=>{
     let Email=req.body.Email;
     let profile_image=req.file.originalname;
     let tokenid=req.params.token;
-       
-  
-
+    
     pool.getConnection(function(err,con){
                 if(err)
                 {
@@ -110,9 +104,11 @@ const customerdetails=async(req,res)=>{
                     return;
                 }
                 let tokenexists="SELECT * FROM user_register where token='"+tokenid+"'";
-                con.query(tokenexists,function(err,rows){
+                con.query(tokenexists,function(err,rows)
+                {
                
-                    if(err){
+                    if(err)
+                    {
                         res.json({"code" : 500, "status" : "mySQl Error"});
                         return;
                     }
@@ -137,10 +133,11 @@ const customerdetails=async(req,res)=>{
                     token varchar(255)not null
                 )`;
                 con.query(createTodos,function(err,results,fields){
-                    if (err) {
-                        res.status(400).json({"status":"failure","reason":err})
-                        return;
-                        }  
+                        if (err) 
+                            {
+                                res.status(400).json({"status":"failure","reason":err})
+                                return;
+                            }  
 
                     });
 
@@ -148,7 +145,6 @@ const customerdetails=async(req,res)=>{
                     con.query(insertdetails,function(err,result){
                         if(err)
                         {
-                            console.log(err); 
                             res.status(400).json({"status":"failure","reason":err})
                             return;
                         }
@@ -186,7 +182,4 @@ const getdetails=(req,res)=>{
         })
 
 }
-
-
-
 module.exports={signup,signin,getdetails,customerdetails}
