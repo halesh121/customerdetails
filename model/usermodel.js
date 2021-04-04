@@ -57,7 +57,8 @@ const signup=async(req,res)=>{
 const signin=async(req,res)=>{
     let username=req.body.username;
     let password=req.body.password;
-    let bcryptpassword=await bcrypt.hash(password,8)
+    // let bcryptpassword=await bcrypt.hash(password,8)
+   
 
 
     pool.getConnection(function(err,con)
@@ -67,37 +68,26 @@ const signin=async(req,res)=>{
                 res.json({"code" : 500, "status" : err});
                 return;
             }
-
-            let loginquery="SELECT * FROM  user_register where u_name='"+username+"'";
-            con.query(loginquery,async function(err,rowss)
+            con.query("SELECT * FROM user_register WHERE u_name = ? ", [username],async function(err,rowss)
             {
-                    if(err)
-                    {
-                        res.json({"code" : 500, "status" : err});
-                        return;
-                    }
-                    else if(rowss.length<=0)
-                    {
-                        res.status(400).send("invalid username");
-                        return;
-                    }
+        
+                bcrypt.compare(password, rowss[0].password, function(err, results) {
                     
-                    else
-                    {
-                        passsword=rowss[0].password;
-                        const verifypass=await bcrypt.compare(password,passsword)
-                       if(!verifypass)
-                       {
-                            res.status(400).send("invalid password");
-                            return;
-                       }
-                       else{
-                           res.json({rowss})
-                       }
+                    if(results) {
+                    con.query("SELECT * FROM user_register WHERE u_name = '"+username+"' and password= '"+rowss[0].password+"'", function(err,rowfield){
+
+                        res.json({rowfield})
+                        return;
+                    })
                     }
-            
-                })        
-                con.release();
+                    else{
+                       res.status(400).send("invalid password");
+                        return;
+                    }
+                  });
+                  
+                  
+            })
     })
 }
 
@@ -109,7 +99,7 @@ const customerdetails=async(req,res)=>{
     let gender=req.body.Gender;
     let Email=req.body.Email;
     let profile_image=req.file.originalname;
-    let userid=req.params.userid;
+    let tokenid=req.params.token;
        
   
 
@@ -119,8 +109,8 @@ const customerdetails=async(req,res)=>{
                     res.json({"code" : 500, "status" : err});
                     return;
                 }
-                let useridexists="SELECT * FROM user_register where id="+userid+"";
-                con.query(useridexists,function(err,rows){
+                let tokenexists="SELECT * FROM user_register where token='"+tokenid+"'";
+                con.query(tokenexists,function(err,rows){
                
                     if(err){
                         res.json({"code" : 500, "status" : "mySQl Error"});
@@ -129,7 +119,7 @@ const customerdetails=async(req,res)=>{
                     
                     if(rows.length<=0)
                     {
-                        res.status(400).send("invalid userid");
+                        res.status(400).send("invalid token");
                         return;
                     }
                    
@@ -144,9 +134,7 @@ const customerdetails=async(req,res)=>{
                     gender varchar(255)not null,
                     email varchar(255),
                     profileimage varchar(255)not null,
-                    userid int,FOREIGN KEY (userid)
-                    REFERENCES user_register(id)
-                    ON DELETE CASCADE
+                    token varchar(255)not null
                 )`;
                 con.query(createTodos,function(err,results,fields){
                     if (err) {
@@ -156,7 +144,7 @@ const customerdetails=async(req,res)=>{
 
                     });
 
-                    let insertdetails="INSERT INTO `customer_details`(`id`, `F_name`, `pan_number`, `DOB`, `gender`, `email`, `profileimage`,`userid`) VALUES (null,'"+name+"','"+pno+"','"+Dob+"','"+gender+"','"+Email+"','"+profile_image+"','"+userid+"')";
+                    let insertdetails="INSERT INTO `customer_details`(`id`, `F_name`, `pan_number`, `DOB`, `gender`, `email`, `profileimage`,`token`) VALUES (null,'"+name+"','"+pno+"','"+Dob+"','"+gender+"','"+Email+"','"+profile_image+"','"+tokenid+"')";
                     con.query(insertdetails,function(err,result){
                         if(err)
                         {
@@ -172,13 +160,15 @@ const customerdetails=async(req,res)=>{
 }
 
 const getdetails=(req,res)=>{
+
+    const tokenid=req.params.token;
     pool.getConnection(function(err,con){
         if(err)
         {
             res.json({"code" : 500, "status" : err});
             return;
         }
-        let useridexists="SELECT * FROM customer_details";
+        let useridexists="SELECT * FROM customer_details where token='"+tokenid+"'";
         con.query(useridexists,function(err,rows){
        
                     if(err)

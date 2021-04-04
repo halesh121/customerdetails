@@ -14,10 +14,10 @@ userrouter.post('/userlogin',async(req,res)=>{
     await Usermodel.signin(req,res)
 })
 
-userrouter.post('/userdetails/:userid',auth,upload.single('Image'),async(req,res)=>{
+userrouter.post('/userdetails/:token',auth,upload.single('Image'),async(req,res)=>{
         const details=req.body;
-        
     try{    
+                        
                         let reg=/^[A-Z]{5}[0-9]{4}[A-z]{1}$/;
                         let date_formate = /^\d{2}[./]\d{2}[./]\d{2}$/;
                         if(details.F_name =='' || details.pan_no=='' || details.Dob=='' || details.Gender=='' || details.Email=='' || req.file==undefined){
@@ -42,13 +42,14 @@ userrouter.post('/userdetails/:userid',auth,upload.single('Image'),async(req,res
     }
     catch(e)           
     {
+       
         res.send(e);
     }     
 
 
 })
 
-userrouter.get('/customerdetails',async(req,res)=>{
+userrouter.get('/customerdetails/:token',async(req,res)=>{
     try {
         await Usermodel.getdetails(req,res);
 
